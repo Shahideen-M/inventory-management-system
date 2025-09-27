@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ivm.inventory_management_system.enums.BusinessType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -20,9 +21,10 @@ public class User {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "Username is required")
-    private String username;
-    private String bname;
+    @NotBlank(message = "Email is required")
+    @Email(message = "Please provide a valid email")
+    private String email;
+    private String businessName;
 
     @Enumerated(EnumType.STRING)
     private BusinessType businessType;
