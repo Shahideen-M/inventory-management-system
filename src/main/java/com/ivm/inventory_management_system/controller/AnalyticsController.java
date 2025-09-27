@@ -1,6 +1,7 @@
 package com.ivm.inventory_management_system.controller;
 
 import com.ivm.inventory_management_system.service.AnalyticsService;
+import com.ivm.inventory_management_system.service.UserService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
-    public AnalyticsController(AnalyticsService analyticsService) {
+    public AnalyticsController(AnalyticsService analyticsService, UserService userService) {
         this.analyticsService = analyticsService;
     }
 

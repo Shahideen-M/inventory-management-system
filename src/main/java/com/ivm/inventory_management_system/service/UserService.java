@@ -16,8 +16,8 @@ public class UserService {
     }
 
     public User registerUser(User user) {
-        if(userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username: " +user.getUsername()+" is already taken. Please choose another one.");
+        if(userRepository.findUserByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists.Try login?");
         }
         return userRepository.save(user);
     }
@@ -30,8 +30,8 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public Optional<User> findUserByName(String username) {
-        return userRepository.findByUsername(username);
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findUserByEmail(email);
     }
 
 }

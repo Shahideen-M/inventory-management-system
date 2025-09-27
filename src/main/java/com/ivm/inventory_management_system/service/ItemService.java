@@ -53,13 +53,10 @@ public class ItemService {
         CustomerItemDto dto = new CustomerItemDto();
         dto.setName(item.getName());
         dto.setPrice(item.getPrice());
+        dto.setQuantity(item.getQuantity());
         dto.setCategory(item.getCategory() != null ? item.getCategory().getName() : null);
-
         if (businessType == BusinessType.SELF_SERVICE) {
             dto.setPrimaryAddress(item.getPrimaryAddress());
-            dto.setAvailable(item.getQuantity() > 0);
-        } else {
-            dto.setQuantity(item.getQuantity());
         }
         return dto;
     }
