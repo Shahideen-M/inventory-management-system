@@ -1,5 +1,6 @@
 package com.ivm.inventory_management_system.enums;
 
 public enum UserRole {
-    OWNER
+    ROLE_OWNER,
+    ROLE_CUSTOMER
 }

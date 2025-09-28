@@ -3,6 +3,7 @@ package com.ivm.inventory_management_system.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ivm.inventory_management_system.enums.BusinessType;
+import com.ivm.inventory_management_system.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +38,10 @@ public class User {
     private String password;
 
     private Integer lowStockThreshold = 10;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole userRole;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonManagedReference
