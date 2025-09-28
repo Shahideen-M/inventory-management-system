@@ -14,7 +14,11 @@ public class SecurityConfig {
                 .cors(cors -> {
                 })
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/user/register", "/user/login", "/customer/**").permitAll()
+                        .requestMatchers("/user/register", "/user/login", "/customer/**","/send-test-notification",
+                                "/test-notifications.html",
+                                "/ws-notifications/**",
+                                "/app/**",
+                                "/topic/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
