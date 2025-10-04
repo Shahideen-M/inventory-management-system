@@ -1,9 +1,12 @@
 package com.ivm.inventory_management_system.service;
 
 import com.ivm.inventory_management_system.dto.CustomerItemDto;
+import com.ivm.inventory_management_system.entity.Category;
 import com.ivm.inventory_management_system.enums.BusinessType;
 import com.ivm.inventory_management_system.entity.Item;
 import com.ivm.inventory_management_system.entity.User;
+import com.ivm.inventory_management_system.enums.CategoryType;
+import com.ivm.inventory_management_system.repository.CategoryRepository;
 import com.ivm.inventory_management_system.repository.ItemRepository;
 import com.ivm.inventory_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -16,33 +19,24 @@ import java.util.stream.Stream;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository) {
+    public ItemService(ItemRepository itemRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public Optional<Item> getItemById(Long id) {
-        return itemRepository.findById(id);
-    }
-
-    public Item saveItem(Item item) {
-        return itemRepository.save(item);
+    public Optional<Item> getItemByUserIdAndId(Long userId, Long id) {
+        return itemRepository.findByUserIdAndId(userId, id);
     }
 
     public void deleteItem(Long id) {
         itemRepository.deleteById(id);
     }
 
-    public Item createItemForUser(Long userId, Item item) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        item.setUser(user);
-        return itemRepository.save(item);
-    }
-
-    public List<CustomerItemDto> getItemsForCustomer(BusinessType businessType) {
-        List<Item> items = itemRepository.findAll();
+    public List<CustomerItemDto> getItemsForCustomer(Long ownerId, BusinessType businessType) {
+        List<Item> items = itemRepository.findByUserIdAndUserBusinessType(ownerId, BusinessType.valueOf(businessType.toString()));
 
         return items.stream()
                 .map(item -> mapToDto(item, businessType))
@@ -79,20 +73,55 @@ public class ItemService {
                 .toList();
     }
 
-    public Item manageItemForOwner(Long ownerId, String name, BigDecimal price, Integer quantity, Integer lowStockThreshold) {
+    public Item manageItemForOwner(Long ownerId, String name,
+                                   BigDecimal price, Integer quantity,
+                                   String primaryAddress, String secondaryAddress,
+                                   String tertiaryAddress,Integer lowStockThreshold,
+                                   CategoryType categoryType, String customCategory) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
-        Item item = itemRepository.findByUserIdAndName(ownerId, name)
-                .orElseGet(Item::new);
+        Optional<Item> existingItemOpt = itemRepository.findByUserIdAndName(ownerId, name);
 
-        item.setUser(owner);
-        item.setName(name);
-        item.setPrice(price);
-        item.setQuantity(quantity);
-        item.setLowStockThreshold(lowStockThreshold != null ? lowStockThreshold : owner.getLowStockThreshold());
+        Item item;
+        if (existingItemOpt.isPresent()) {
+            item = existingItemOpt.get();
+            item.setQuantity(item.getQuantity() + quantity);
+            if (price != null) item.setPrice(price);
+            if (primaryAddress != null) item.setPrimaryAddress(primaryAddress);
+            if (secondaryAddress != null) item.setSecondaryAddress(secondaryAddress);
+            if (tertiaryAddress != null) item.setTertiaryAddress(tertiaryAddress);
+            if (lowStockThreshold != null) item.setLowStockThreshold(lowStockThreshold);
+        } else {
+            item = new Item();
+            item.setUser(owner);
+            item.setName(name);
+            item.setPrice(price);
+            item.setQuantity(quantity);
+            item.setPrimaryAddress(primaryAddress);
+            item.setSecondaryAddress(secondaryAddress);
+            item.setTertiaryAddress(tertiaryAddress);
+            item.setLowStockThreshold(lowStockThreshold != null ? lowStockThreshold : owner.getLowStockThreshold());
+        }
+        String categoryName = null;
+        if (categoryType != null && categoryType != CategoryType.OTHER) {
+            categoryName = categoryType.name();
+        } else if (categoryType == CategoryType.OTHER && customCategory != null && !customCategory.isBlank()) {
+            categoryName = customCategory.trim().toUpperCase();
+        }
 
+        if (categoryName != null) {
+            Optional<Category> categoryOpt = categoryRepository.findByName(categoryName);
+            Category category;
+            if (categoryOpt.isPresent()) {
+                category = categoryOpt.get();
+            } else {
+                category = new Category();
+                category.setName(categoryName);
+                categoryRepository.save(category);
+            }
+            item.setCategory(category);
+        }
         return itemRepository.save(item);
     }
-
 }

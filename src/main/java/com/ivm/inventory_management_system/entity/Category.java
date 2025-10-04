@@ -19,4 +19,6 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Item> items;
 
+    private Boolean isCustom = true;
+
 }

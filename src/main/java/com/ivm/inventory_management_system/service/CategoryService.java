@@ -15,12 +15,9 @@ public class CategoryService {
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
+
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
-    }
-
-    public Category createCategory(Category category) {
-        return categoryRepository.save( category);
     }
 
     public Optional<Category> getCategoryById(Long id) {
@@ -30,13 +27,22 @@ public class CategoryService {
     public Optional<Category> getCategoryByName(String name) {
         return categoryRepository.findByName(name);
     }
-    public void updateCategory(Category updatedcategory) {
-        categoryRepository.save(updatedcategory);
+
+    public Category createCategory(String name, boolean isCustom) {
+        return categoryRepository.findByName(name)
+                .orElseGet(() -> {
+                    Category cat = new Category();
+                    cat.setName(name);
+                    cat.setIsCustom(isCustom);
+                    return categoryRepository.save(cat);
+                });
+    }
+
+    public void updateCategory(Category updatedCategory) {
+        categoryRepository.save(updatedCategory);
     }
 
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
-
-
 }

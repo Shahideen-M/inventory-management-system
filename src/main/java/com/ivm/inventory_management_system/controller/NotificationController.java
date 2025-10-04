@@ -15,13 +15,6 @@ public class NotificationController {
         this.service = service;
     }
 
-    @PostMapping("/send")
-    public Notification send(@RequestParam Long customerId,
-                             @RequestParam Long ownerId,
-                             @RequestParam String message) {
-        return service.sendNotification(customerId, ownerId, message);
-    }
-
     @GetMapping("/owner/{ownerId}")
     public List<Notification> getPending(@PathVariable Long ownerId) {
         return service.getPendingNotifications(ownerId);

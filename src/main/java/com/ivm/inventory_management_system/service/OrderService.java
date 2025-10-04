@@ -1,16 +1,14 @@
 package com.ivm.inventory_management_system.service;
 
 import com.ivm.inventory_management_system.entity.*;
-import com.ivm.inventory_management_system.enums.OrderStatus;
 import com.ivm.inventory_management_system.repository.CartRepository;
 import com.ivm.inventory_management_system.repository.ItemRepository;
 import com.ivm.inventory_management_system.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -26,56 +24,52 @@ public class OrderService {
     }
 
     @Transactional
-    public Order confirmOrder(Long ownerId, String customerName) {
+    public Order createOrderFromAcceptedNotification(Long ownerId, String customerName) {
+        Optional<Order> existingOrder = orderRepository
+                .findTopByOwnerIdAndCustomerNameOrderByCreatedAtDesc(ownerId, customerName);
+
+        boolean hasActiveOrder = existingOrder.stream()
+                .anyMatch(o -> o.getCompletedAt() == null && o.getCancelledAt() == null);
+        if (hasActiveOrder) {
+            throw new RuntimeException("An active order already exists for this customer.");
+        }
+
         List<Cart> cartItems = cartRepository.findByOwnerIdAndCustomerName(ownerId, customerName);
 
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty for owner " + ownerId + " and customer " + customerName);
+            throw new RuntimeException("No cart items to create order");
         }
 
         Order order = new Order();
-        order.setCustomerName(customerName);
         order.setOwner(cartItems.get(0).getOwner());
-        order.setStatus(OrderStatus.PENDING);
+        order.setCustomerName(customerName);
 
         var orderItems = cartItems.stream().map(c -> {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setItem(c.getItem());
-            orderItem.setQuantity(c.getQuantity());
-            orderItem.setOrder(order);
-            return orderItem;
+            OrderItem oi = new OrderItem();
+            oi.setItem(c.getItem());
+            oi.setQuantity(c.getQuantity());
+            oi.setOrder(order);
+            return oi;
         }).toList();
 
         order.setItems(orderItems);
+
         Order saved = orderRepository.save(order);
-
-        cartRepository.deleteAll(cartItems);
-
         return saved;
     }
 
-    public List<Order> getOrdersForOwner(Long ownerId) {
-        return orderRepository.findByOwnerId(ownerId);
-    }
-
-    @Transactional
-    public Order updateOrderStatus(Long orderId, OrderStatus status) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        order.setStatus(status);
-
-        if (status == OrderStatus.COMPLETED) {
-            order.setCompletedAt(LocalDateTime.now());
-        } else if (status == OrderStatus.CANCELLED) {
-            order.setCancelledAt(LocalDateTime.now());
+        @Transactional
+        public Order completeOrder(Long ownerId, String customerName) {
+            Order order = orderRepository.findByOwnerIdAndCustomerName(ownerId, customerName).
+                    orElseThrow(()-> new RuntimeException("Order not found."));
 
             for (OrderItem oi : order.getItems()) {
-                Item item = itemRepository.findByNameContainingIgnoreCase(oi.getItem().getName()).getFirst();
-                item.setQuantity(item.getQuantity() + oi.getQuantity());
+                Item item = oi.getItem();
                 itemRepository.save(item);
             }
+
+            orderRepository.save(order);
+            cartRepository.deleteAll(cartRepository.findByOwnerIdAndCustomerName(order.getOwner().getId(), order.getCustomerName()));
+            return order;
         }
-        return orderRepository.save(order);
-    }
 }

@@ -21,6 +21,7 @@ public class Cart {
     private Item item;
 
     private Integer quantity;
+    private String status;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)

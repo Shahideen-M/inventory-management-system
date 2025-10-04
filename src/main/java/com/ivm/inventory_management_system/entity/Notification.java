@@ -18,8 +18,11 @@ public class Notification {
     private boolean completed = false;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime completedAt;
+    private LocalDateTime cancelledAt;
     private LocalDateTime expiresAt;
 
     private Long customerId;
     private Long ownerId;
+    private String customerName;
 }

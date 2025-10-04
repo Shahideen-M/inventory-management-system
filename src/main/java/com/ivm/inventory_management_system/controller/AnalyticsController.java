@@ -15,7 +15,7 @@ public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
-    public AnalyticsController(AnalyticsService analyticsService, UserService userService) {
+    public AnalyticsController(AnalyticsService analyticsService) {
         this.analyticsService = analyticsService;
     }
 

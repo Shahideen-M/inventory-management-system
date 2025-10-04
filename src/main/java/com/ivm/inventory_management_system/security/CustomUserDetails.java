@@ -25,7 +25,7 @@ public class CustomUserDetails implements UserDetails {
     public String getPassword() { return user.getPassword(); }
 
     @Override
-    public String getUsername() { return user.getEmail(); } // login via email
+    public String getUsername() { return user.getEmail(); }
 
     @Override
     public boolean isAccountNonExpired() { return true; }

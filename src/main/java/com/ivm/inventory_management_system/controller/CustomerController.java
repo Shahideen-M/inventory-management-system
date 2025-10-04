@@ -24,7 +24,7 @@ public class CustomerController {
     public ResponseEntity<?> getItemsForCustomer(@PathVariable Long ownerId) {
         return userService.findById(ownerId)
                 .map(owner -> {
-                    List<CustomerItemDto> items = itemService.getItemsForCustomer(owner.getBusinessType());
+                    List<CustomerItemDto> items = itemService.getItemsForCustomer(ownerId, owner.getBusinessType());
                     return ResponseEntity.ok(items);
                         })
                 .orElseGet(() -> ResponseEntity.notFound().build());

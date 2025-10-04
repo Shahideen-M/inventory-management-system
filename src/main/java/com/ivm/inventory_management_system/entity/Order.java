@@ -1,7 +1,6 @@
 package com.ivm.inventory_management_system.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.ivm.inventory_management_system.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -27,9 +26,6 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items;
-
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status = OrderStatus.PENDING;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
