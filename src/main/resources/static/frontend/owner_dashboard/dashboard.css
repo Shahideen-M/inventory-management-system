@@ -29,23 +29,12 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-.header-left {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
 .header h2 {
   color: var(--black);
   font-weight: 700;
   letter-spacing: 1px;
    margin: 0;
 }
-.header p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
 .profile {
   width: 45px;
   height: 45px;

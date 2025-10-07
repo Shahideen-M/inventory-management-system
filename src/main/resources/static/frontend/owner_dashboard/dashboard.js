@@ -60,8 +60,8 @@ window.addEventListener("DOMContentLoaded", async () => {
             const data = await analyticsRes.json();
 
             document.getElementById("totalItems").innerText = data.totalItems ?? 0;
-            document.getElementById("lowStockItems").innerText = data.lowStock ?? 0;
-            document.getElementById("outOfStockItems").innerText = data.outOfStock ?? 0;
+            document.getElementById("lowStockItems").innerText = data.lowStockAlerts?.length ?? 0;
+            document.getElementById("outOfStockItems").innerText = data.outOfStockAlerts  ?? 0;
             document.getElementById("recentlyAdded").innerText = data.recentlyAdded ?? 0;
 
             console.log("Analytics loaded:", data);

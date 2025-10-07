@@ -105,11 +105,30 @@ public class AnalyticsService {
             }
         }
 
+        // ✅ Fetch user's threshold (defaults to 10)
+        int threshold = itemRepository.findByUserId(ownerId).stream()
+                .findFirst()
+                .map(i -> i.getUser().getLowStockThreshold() != null ?
+                        i.getUser().getLowStockThreshold() : 10)
+                .orElse(10);
+
+        // ✅ Find low stock and out of stock
+        List<String> lowStock = itemRepository.findByUserId(ownerId).stream()
+                .filter(i -> i.getQuantity() != null && i.getQuantity() > 0 && i.getQuantity() <= threshold)
+                .map(i -> "⚠️ Low stock: " + i.getName() + " (" + i.getQuantity() + " left)")
+                .toList();
+
+        List<String> outOfStock = itemRepository.findByUserId(ownerId).stream()
+                .filter(i -> i.getQuantity() != null && i.getQuantity() == 0)
+                .map(i -> "❌ Out of stock: " + i.getName())
+                .toList();
+
         // 3️⃣ Low stock alerts
         List<String> lowStockAlerts = items.stream()
                 .filter(i -> i.getQuantity() != null && i.getQuantity() <= lowStockThreshold)
                 .map(i -> "⚠️ Low stock: " + i.getName() + " (" + i.getQuantity() + " left)")
                 .toList();
+
 
         // 4️⃣ Build final summary map
         Map<String, Object> summary = new HashMap<>();
@@ -119,7 +138,6 @@ public class AnalyticsService {
         summary.put("totalRevenue", totalRevenue);
         summary.put("topItem", topItem != null ? topItem : "No sales");
         summary.put("lowStockAlerts", lowStockAlerts);
-
         summary.put("totalItems", totalItems);
         summary.put("lowStockItems", lowStockItems);
         summary.put("outOfStockItems", outOfStockItems);
