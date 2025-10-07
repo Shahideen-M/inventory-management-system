@@ -1,6 +1,7 @@
 package com.ivm.inventory_management_system.service;
 
 import com.ivm.inventory_management_system.dto.CustomerItemDto;
+import com.ivm.inventory_management_system.dto.OwnerItemDto;
 import com.ivm.inventory_management_system.entity.Category;
 import com.ivm.inventory_management_system.enums.BusinessType;
 import com.ivm.inventory_management_system.entity.Item;
@@ -10,8 +11,13 @@ import com.ivm.inventory_management_system.repository.CategoryRepository;
 import com.ivm.inventory_management_system.repository.ItemRepository;
 import com.ivm.inventory_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -73,55 +79,79 @@ public class ItemService {
                 .toList();
     }
 
-    public Item manageItemForOwner(Long ownerId, String name,
-                                   BigDecimal price, Integer quantity,
-                                   String primaryAddress, String secondaryAddress,
-                                   String tertiaryAddress,Integer lowStockThreshold,
-                                   CategoryType categoryType, String customCategory) {
+    public OwnerItemDto manageItemForOwner(Long ownerId, OwnerItemDto request) throws IOException {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
-        Optional<Item> existingItemOpt = itemRepository.findByUserIdAndName(ownerId, name);
+        Optional<Item> existingItemOpt = itemRepository.findByUserIdAndName(ownerId, request.getName());
 
         Item item;
         if (existingItemOpt.isPresent()) {
             item = existingItemOpt.get();
-            item.setQuantity(item.getQuantity() + quantity);
-            if (price != null) item.setPrice(price);
-            if (primaryAddress != null) item.setPrimaryAddress(primaryAddress);
-            if (secondaryAddress != null) item.setSecondaryAddress(secondaryAddress);
-            if (tertiaryAddress != null) item.setTertiaryAddress(tertiaryAddress);
-            if (lowStockThreshold != null) item.setLowStockThreshold(lowStockThreshold);
+            item.setQuantity(item.getQuantity() + (request.getQuantity() != null ? request.getQuantity() : 0));
+            if (request.getPrice() != null) item.setPrice(request.getPrice());
+            if (request.getPrimaryAddress() != null) item.setPrimaryAddress(request.getPrimaryAddress());
+            if (request.getSecondaryAddress() != null) item.setSecondaryAddress(request.getSecondaryAddress());
+            if (request.getTertiaryAddress() != null) item.setTertiaryAddress(request.getTertiaryAddress());
+            if (request.getLowStockThreshold() != null) item.setLowStockThreshold(request.getLowStockThreshold());
         } else {
             item = new Item();
             item.setUser(owner);
-            item.setName(name);
-            item.setPrice(price);
-            item.setQuantity(quantity);
-            item.setPrimaryAddress(primaryAddress);
-            item.setSecondaryAddress(secondaryAddress);
-            item.setTertiaryAddress(tertiaryAddress);
-            item.setLowStockThreshold(lowStockThreshold != null ? lowStockThreshold : owner.getLowStockThreshold());
+            item.setName(request.getName());
+            item.setPrice(request.getPrice());
+            item.setQuantity(request.getQuantity());
+            item.setPrimaryAddress(request.getPrimaryAddress());
+            item.setSecondaryAddress(request.getSecondaryAddress());
+            item.setTertiaryAddress(request.getTertiaryAddress());
+            item.setLowStockThreshold(request.getLowStockThreshold() != null ? request.getLowStockThreshold() : owner.getLowStockThreshold());
         }
-        String categoryName = null;
-        if (categoryType != null && categoryType != CategoryType.OTHER) {
-            categoryName = categoryType.name();
-        } else if (categoryType == CategoryType.OTHER && customCategory != null && !customCategory.isBlank()) {
-            categoryName = customCategory.trim().toUpperCase();
+
+        MultipartFile file = request.getImageFile();
+        if (file != null && !file.isEmpty()) {
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path uploadPath = Paths.get("uploads");
+            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            item.setImageUrl("/uploads/" + fileName);
+        }
+
+        String categoryName;
+        if (request.getCategoryType() != null && request.getCategoryType() != CategoryType.OTHER) {
+            categoryName = request.getCategoryType().name();
+        } else if (request.getCategoryType() == CategoryType.OTHER && request.getCustomCategory() != null) {
+            categoryName = request.getCustomCategory().trim().toUpperCase();
+        } else {
+            categoryName = null;
         }
 
         if (categoryName != null) {
             Optional<Category> categoryOpt = categoryRepository.findByName(categoryName);
-            Category category;
-            if (categoryOpt.isPresent()) {
-                category = categoryOpt.get();
-            } else {
-                category = new Category();
-                category.setName(categoryName);
-                categoryRepository.save(category);
-            }
+            Category category = categoryOpt.orElseGet(() -> {
+                Category newCat = new Category();
+                newCat.setName(categoryName);
+                return categoryRepository.save(newCat);
+            });
             item.setCategory(category);
         }
-        return itemRepository.save(item);
+
+        Item savedItem = itemRepository.save(item);
+
+        OwnerItemDto dto = new OwnerItemDto();
+        dto.setId(savedItem.getId());
+        dto.setName(savedItem.getName());
+        dto.setPrice(savedItem.getPrice());
+        dto.setQuantity(savedItem.getQuantity());
+        dto.setCategory(savedItem.getCategory() != null ? savedItem.getCategory().getName() : null);
+        dto.setPrimaryAddress(savedItem.getPrimaryAddress());
+        dto.setSecondaryAddress(savedItem.getSecondaryAddress());
+        dto.setTertiaryAddress(savedItem.getTertiaryAddress());
+        dto.setLowStockThreshold(savedItem.getLowStockThreshold());
+        dto.setImageUrl(savedItem.getImageUrl());
+        dto.setCreatedAt(savedItem.getCreatedAt());
+        dto.setUpdatedAt(savedItem.getUpdatedAt());
+        dto.setAvailable(savedItem.getQuantity() > 0);
+
+        return dto;
     }
 }

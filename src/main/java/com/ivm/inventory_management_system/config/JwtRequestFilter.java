@@ -45,15 +45,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             try {
-                // Here "username" is actually the email since we generate token with email
                 email = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Invalid or expired token → just continue without authentication
+
             }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.loadUserByUsername(email); // load by email
+            UserDetails userDetails = userService.loadUserByUsername(email);
             if (jwtUtil.validateToken(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

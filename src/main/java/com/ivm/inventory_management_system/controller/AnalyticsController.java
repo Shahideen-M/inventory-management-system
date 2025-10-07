@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -14,17 +15,23 @@ import java.util.Map;
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
+    private final UserService userService;
 
-    public AnalyticsController(AnalyticsService analyticsService) {
+    public AnalyticsController(AnalyticsService analyticsService, UserService userService) {
         this.analyticsService = analyticsService;
+        this.userService = userService;
     }
 
-    @GetMapping("/owner/{ownerId}/dashboard")
+    @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboard(
-            @PathVariable Long ownerId,
             @RequestParam(defaultValue = "today") String mode,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Principal principal) {
+        String email = principal.getName();
+        Long ownerId = userService.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
 
         Map<String, Object> response;
 

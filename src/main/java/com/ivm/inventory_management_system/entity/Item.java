@@ -23,6 +23,7 @@ public class Item {
     @NotBlank(message = "Name is required")
     @Column(nullable = false)
     private String name;
+
     private BigDecimal price;
     @Min(value = 0, message = "Quantity cannot be negative")
     private Integer quantity;
@@ -30,8 +31,8 @@ public class Item {
     private String primaryAddress;
     private String secondaryAddress;
     private String tertiaryAddress;
-
     private Integer lowStockThreshold;
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

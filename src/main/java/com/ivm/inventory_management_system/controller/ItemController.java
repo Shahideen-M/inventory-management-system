@@ -1,12 +1,12 @@
 package com.ivm.inventory_management_system.controller;
 
-import com.ivm.inventory_management_system.dto.ManageItemRequest;
 import com.ivm.inventory_management_system.dto.OwnerItemDto;
 import com.ivm.inventory_management_system.entity.Item;
 import com.ivm.inventory_management_system.service.ItemService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -30,37 +30,11 @@ public class ItemController {
     @PostMapping("/owner/{ownerId}/items/manage")
     public ResponseEntity<OwnerItemDto> manageItemForOwner(
             @PathVariable Long ownerId,
-            @RequestBody ManageItemRequest request) {
+            @ModelAttribute OwnerItemDto request) throws IOException {
         try {
-            Item updatedItem = itemService.manageItemForOwner(
-                    ownerId,
-                    request.name(),
-                    request.price(),
-                    request.quantity(),
-                    request.primaryAddress(),
-                    request.secondaryAddress(),
-                    request.tertiaryAddress(),
-                    request.lowStockThreshold(),
-                    request.categoryType(),
-                    request.customCategory()
-            );
-
-            OwnerItemDto dto = new OwnerItemDto();
-            dto.setId(updatedItem.getId());
-            dto.setName(updatedItem.getName());
-            dto.setPrice(updatedItem.getPrice());
-            dto.setQuantity(updatedItem.getQuantity());
-            dto.setCategory(updatedItem.getCategory() != null ? updatedItem.getCategory().getName() : null);
-            dto.setPrimaryAddress(updatedItem.getPrimaryAddress());
-            dto.setSecondaryAddress(updatedItem.getSecondaryAddress());
-            dto.setTertiaryAddress(updatedItem.getTertiaryAddress());
-            dto.setLowStockThreshold(updatedItem.getLowStockThreshold());
-            dto.setCreatedAt(updatedItem.getCreatedAt());
-            dto.setUpdatedAt(updatedItem.getUpdatedAt());
-            dto.setAvailable(updatedItem.getQuantity() > 0);
-
+            OwnerItemDto dto = itemService.manageItemForOwner(ownerId, request);
             return ResponseEntity.ok(dto);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | IOException e) {
             return ResponseEntity.badRequest().build();
         }
     }

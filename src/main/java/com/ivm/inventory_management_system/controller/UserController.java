@@ -49,11 +49,12 @@ public class UserController {
                 .orElse(ResponseEntity.status(401).body("Invalid email or password"));
     }
 
-    @GetMapping
+    @GetMapping("/profile")
     public ResponseEntity<UserProfileDto> getProfile(Principal principal) {
         return userService.findUserByEmail(principal.getName())
                 .map(user -> {
                     UserProfileDto dto = new UserProfileDto();
+                    dto.setId(user.getId());
                     dto.setName(user.getName());
                     dto.setBusinessName(user.getBusinessName());
                     dto.setBusinessType(user.getBusinessType());
@@ -134,8 +135,6 @@ public class UserController {
 
         return ResponseEntity.ok("Password updated successfully");
     }
-
-
 
     @GetMapping("/business-types")
     public BusinessType[] getBusinessTypes() {

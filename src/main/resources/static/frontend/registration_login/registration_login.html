@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main">
+        <!-- Login Container -->
+        <div id="a-container" class="container a-container">
+            <form class="form" id="login-form">
+                <h1 class="title">Login</h1>
+                <span class="description">Enter your credentials</span>
+                <input id="loginEmail" class="form__input" type="email" placeholder="Email" required>
+                <input id="loginPassword" class="form__input" type="password" placeholder="Password" required>
+                <button id="loginBtn" class="button submit">Login</button>
+                <span class="form__link switch-btn">Don't have an account? Sign up</span>
+            </form>
+        </div>
+
+        <!-- Signup Container -->
+        <div id="b-container" class="container b-container is-hidden">
+            <form class="form" id="signup-form">
+                <h1 class="title">Sign Up</h1>
+                <span class="description">Create your account</span>
+                <input id="name" class="form__input" type="text" placeholder="Your Name" required>
+                <input id="businessName"  class="form__input" type="text" placeholder="Business Name" required>
+                <select id="businessType" class="form__input" required>
+                    <option value="" disabled selected>Select Business Type</option>
+                </select>
+                <input id="email" class="form__input" type="email" placeholder="Email" required>
+                <input id="password" class="form__input" type="password" placeholder="Password" required>
+                <input id="thresholdValue" class="form__input" type="number" placeholder="Alerts when stock reaches this number" min="0">
+                <button id="registerBtn" type="submit" class="button submit">Sign Up</button>
+                <span class="form__link switch-btn">Already have an account? Login</span>
+            </form>
+        </div>
+        <div class="switch" id="switch-cnt">
+            <div class="switch__circle"></div>
+            <div class="switch__circle switch__circle--t"></div>
+        </div>
+        <div id="message" style="color:red; margin-top:10px;"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
